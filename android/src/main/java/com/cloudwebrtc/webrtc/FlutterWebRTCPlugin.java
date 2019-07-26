@@ -4,17 +4,21 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.graphics.SurfaceTexture;
+import android.media.AudioManager;
 import android.util.Log;
 import android.util.LongSparseArray;
 
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
+import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 
+import java.io.UnsupportedEncodingException;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.webrtc.AudioTrack;
@@ -66,6 +70,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     private GetUserMediaImpl getUserMediaImpl;
     final PeerConnectionFactory mFactory;
 
+    private AudioDeviceModule audioDeviceModule;
 
     public Activity getActivity() {
         return registrar.activity();
@@ -79,7 +84,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
      * Plugin registration.
      */
     public static void registerWith(Registrar registrar) {
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), "cloudwebrtc.com/WebRTC.Method");
+        final MethodChannel channel = new MethodChannel(registrar.messenger(), "FlutterWebRTC.Method");
         channel.setMethodCallHandler(new FlutterWebRTCPlugin(registrar, channel));
     }
 
@@ -105,7 +110,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
 
-        AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
+        audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
                 .setUseHardwareAcousticEchoCanceler(true)
                 .setUseHardwareNoiseSuppressor(true)
                 .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
@@ -122,7 +127,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     }
 
     @Override
-    public void onMethodCall(MethodCall call, Result result) {
+    public void onMethodCall(MethodCall call, Result notSafeResult) {
+        final AnyThreadResult result = new AnyThreadResult(notSafeResult);
         if (call.method.equals("createPeerConnection")) {
             Map<String, Object> constraints = call.argument("constraints");
             Map<String, Object> configuration = call.argument("configuration");
@@ -207,13 +213,28 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("dataChannelSend")) {
             String peerConnectionId = call.argument("peerConnectionId");
             int dataChannelId = call.argument("dataChannelId");
-            String data = call.argument("data");
             String type = call.argument("type");
-            dataChannelSend(peerConnectionId, dataChannelId, data, type);
+            Boolean isBinary = type.equals("binary");
+            ByteBuffer byteBuffer;
+            if(isBinary){
+                byteBuffer = ByteBuffer.wrap(call.argument("data"));
+            }else{
+                try {
+                    String data = call.argument("data");
+                    byteBuffer = ByteBuffer.wrap(data.getBytes("UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    Log.d(TAG, "Could not encode text string as UTF-8.");
+                    result.error("dataChannelSendFailed", "Could not encode text string as UTF-8.",null);
+                    return;
+                }
+            }
+            dataChannelSend(peerConnectionId, dataChannelId, byteBuffer, isBinary);
+            result.success(null);
         } else if (call.method.equals("dataChannelClose")) {
             String peerConnectionId = call.argument("peerConnectionId");
             int dataChannelId = call.argument("dataChannelId");
             dataChannelClose(peerConnectionId, dataChannelId);
+            result.success(null);
         } else if (call.method.equals("streamDispose")) {
             String streamId = call.argument("streamId");
             mediaStreamRelease(streamId);
@@ -234,7 +255,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String peerConnectionId = call.argument("peerConnectionId");
             peerConnectionClose(peerConnectionId);
             result.success(null);
-        } else if (call.method.equals("createVideoRenderer")) {
+        } else if(call.method.equals("peerConnectionDispose")){
+            String peerConnectionId = call.argument("peerConnectionId");
+            peerConnectionClose(peerConnectionId);
+            result.success(null);
+        }else if (call.method.equals("createVideoRenderer")) {
             TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
             SurfaceTexture surfaceTexture = entry.surfaceTexture();
             FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, entry);
@@ -243,7 +268,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             EventChannel eventChannel =
                     new EventChannel(
                             registrar.messenger(),
-                            "cloudwebrtc.com/WebRTC/Texture" + entry.id());
+                            "FlutterWebRTC/Texture" + entry.id());
 
             eventChannel.setStreamHandler(render);
             render.setEventChannel(eventChannel);
@@ -284,6 +309,16 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             double volume = call.argument("volume");
             mediaStreamTrackSetVolume(trackId, volume);
             result.success(null);
+        } else if (call.method.equals("setMicrophoneMute")) {
+            String trackId = call.argument("trackId");
+            boolean mute = call.argument("mute");
+            mediaStreamTrackSetMicrophoneMute(trackId, mute);
+            result.success(null);
+        } else if (call.method.equals("enableSpeakerphone")) {
+            String trackId = call.argument("trackId");
+            boolean enable = call.argument("enable");
+            mediaStreamTrackEnableSpeakerphone(trackId, enable);
+            result.success(null);
         } else if(call.method.equals("getDisplayMedia")) {
             Map<String, Object> constraints = call.argument("constraints");
             ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
@@ -296,7 +331,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 VideoTrack videoTrack = null;
                 String videoTrackId = call.argument("videoTrackId");
                 if (videoTrackId != null) {
-                    MediaStreamTrack track = localTracks.get(videoTrackId);
+                    MediaStreamTrack track = getTrackForId(videoTrackId);
                     if (track instanceof VideoTrack)
                         videoTrack = (VideoTrack) track;
                 }
@@ -321,7 +356,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String path = call.argument("path");
             String videoTrackId = call.argument("trackId");
             if (videoTrackId != null) {
-                MediaStreamTrack track = localTracks.get(videoTrackId);
+                MediaStreamTrack track = getTrackForId(videoTrackId);
                 if (track instanceof VideoTrack)
                     new FrameCapturer((VideoTrack) track, new File(path), result);
                 else
@@ -384,17 +419,17 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             boolean hasUsernameAndCredential = iceServerMap.hasKey("username") && iceServerMap.hasKey("credential");
             if (iceServerMap.hasKey("url")) {
                 if (hasUsernameAndCredential) {
-                    iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("url"), iceServerMap.getString("username"), iceServerMap.getString("credential")));
+                    iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("url")).setUsername(iceServerMap.getString("username")).setPassword(iceServerMap.getString("credential")).createIceServer());
                 } else {
-                    iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("url")));
+                    iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("url")).createIceServer());
                 }
             } else if (iceServerMap.hasKey("urls")) {
                 switch (iceServerMap.getType("urls")) {
                     case String:
                         if (hasUsernameAndCredential) {
-                            iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("urls"), iceServerMap.getString("username"), iceServerMap.getString("credential")));
+                            iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("urls")).setUsername(iceServerMap.getString("username")).setPassword(iceServerMap.getString("credential")).createIceServer());
                         } else {
-                            iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("urls")));
+                            iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("urls")).createIceServer());
                         }
                         break;
                     case Array:
@@ -402,9 +437,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                         for (int j = 0; j < urls.size(); j++) {
                             String url = urls.getString(j);
                             if (hasUsernameAndCredential) {
-                                iceServers.add(new PeerConnection.IceServer(url, iceServerMap.getString("username"), iceServerMap.getString("credential")));
+                                iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString(url)).setUsername(iceServerMap.getString("username")).setPassword(iceServerMap.getString("credential")).createIceServer());
                             } else {
-                                iceServers.add(new PeerConnection.IceServer(url));
+                                iceServers.add(PeerConnection.IceServer.builder(url).createIceServer());
                             }
                         }
                         break;
@@ -491,6 +526,22 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             final int v = map.getInt("iceCandidatePoolSize");
             if (v > 0) {
                 conf.iceCandidatePoolSize = v;
+            }
+        }
+
+        // sdpSemantics
+        if (map.hasKey("sdpSemantics")
+                && map.getType("sdpSemantics") == ObjectType.String) {
+            final String v = map.getString("sdpSemantics");
+            if (v != null) {
+                switch (v) {
+                    case "plan-b":
+                        conf.sdpSemantics = PeerConnection.SdpSemantics.PLAN_B;
+                        break;
+                    case "unified-plan":
+                        conf.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
+                        break;
+                }
             }
         }
 
@@ -854,6 +905,24 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
+    public void mediaStreamTrackSetMicrophoneMute(final String id, boolean mute) {
+        try {
+            audioDeviceModule.setMicrophoneMute(mute);
+        } catch (Exception e) {
+            Log.e(TAG, "setMicrophoneMute(): error", e);
+        }
+    }
+
+    public void mediaStreamTrackEnableSpeakerphone(final String id, boolean enabled) {
+        AudioManager audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+
+        try {
+            audioManager.setSpeakerphoneOn(enabled);
+        } catch (Exception e) {
+            Log.e(TAG, "setSpeakerphoneOn(): error", e);
+        }
+    }
+
     public void mediaStreamTrackRelease(final String streamId, final String _trackId) {
         MediaStream stream = localStreams.get(streamId);
         if (stream == null) {
@@ -1120,6 +1189,14 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             Log.d(TAG, "peerConnectionClose() peerConnection is null");
         } else {
             pco.close();
+        }
+    }
+    public void peerConnectionDispose(final String id) {
+        PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "peerConnectionDispose() peerConnection is null");
+        } else {
+            pco.dispose();
             mPeerConnectionObservers.remove(id);
         }
     }
@@ -1152,7 +1229,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void dataChannelSend(String peerConnectionId, int dataChannelId, String data, String type) {
+    public void dataChannelSend(String peerConnectionId, int dataChannelId, ByteBuffer bytebuffer, Boolean isBinary) {
         // Forward to PeerConnectionObserver which deals with DataChannels
         // because DataChannel is owned by PeerConnection.
         PeerConnectionObserver pco
@@ -1160,7 +1237,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         if (pco == null || pco.getPeerConnection() == null) {
             Log.d(TAG, "dataChannelSend() peerConnection is null");
         } else {
-            pco.dataChannelSend(dataChannelId, data, type);
+            pco.dataChannelSend(dataChannelId, bytebuffer, isBinary);
         }
     }
 
