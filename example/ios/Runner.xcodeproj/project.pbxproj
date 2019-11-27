@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0B2E52A1193C475CC824D4E23320D30B /* flutter_assets in Resources */ = {isa = PBXBuildFile; fileRef = 127FE0431EC071958D67B4152ABE0141 /* flutter_assets */; };
 		229CB39F2D80040AEE1ED23F285ACA94 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A79A511C028ADC462437FA86E6F91AFF /* LaunchScreen.storyboard */; };
 		5AFE2FDDDEBDE94ED82B40DC8B153987 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 9428FFA3DA242B0B23CE49085F8A8C98 /* GeneratedPluginRegistrant.m */; };
 		6354C7FECC33A60C0696301773D78092 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 49096491DEF677A67E9C9D1D2F642FB2 /* AppFrameworkInfo.plist */; };
@@ -21,7 +20,6 @@
 		CE5D87634A0A12EE98C9DC1D9D5BFFDE /* App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B369AAD73AF22F43C5033650E3A5E7 /* App.framework */; };
 		DF12DBCE3921EA73822D14A03AD6F79C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 68DD12D69C99694B0B6CBEAFEC0CBD89 /* AppDelegate.m */; };
 		DFD15F91EC1333E9C1F771E4E93987B1 /* Flutter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B4035E976C526A3EEB983C311F82E74E /* Flutter.framework */; };
-		F16B5D11B6B398BD29B823EAA9ACFC69 /* Flutter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B4035E976C526A3EEB983C311F82E74E /* Flutter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,7 +30,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				CAD7D9F3E9E40787135E737FEDF280DF /* App.framework in Embed Frameworks */,
-				F16B5D11B6B398BD29B823EAA9ACFC69 /* Flutter.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -40,7 +37,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		127FE0431EC071958D67B4152ABE0141 /* flutter_assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = flutter_assets; path = Flutter/flutter_assets; sourceTree = SOURCE_ROOT; };
 		21CE142FB216A639B6BE578625A89011 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		2271EF72D6523FE6EB695CB1AFED02B6 /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		2959FB0650C06639B955C55500B01293 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
@@ -49,7 +45,9 @@
 		5E401A09567E49F31CDA639224D64C9B /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		5F00C8B4B6548724073C4AAF93AD0795 /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		68DD12D69C99694B0B6CBEAFEC0CBD89 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		6C10B5446F3A319A9EBD79E7 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		6E0F8D876B170C77FD896E647713843C /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		70BCB1D2AE93B9182B57CC9F /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		843A0C17DB3B7B95DB4CE8FC36407EDD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8DCF6C17523B59ABB095575CE6B532F1 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		9428FFA3DA242B0B23CE49085F8A8C98 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
@@ -93,6 +91,8 @@
 		4AAEB042555170F933166EF6 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
+				6C10B5446F3A319A9EBD79E7 /* Pods-Runner.debug.xcconfig */,
+				70BCB1D2AE93B9182B57CC9F /* Pods-Runner.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -119,7 +119,6 @@
 		D200E37E3AAFC3BCF315E1D381844A67 /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
-				127FE0431EC071958D67B4152ABE0141 /* flutter_assets */,
 				F6B369AAD73AF22F43C5033650E3A5E7 /* App.framework */,
 				49096491DEF677A67E9C9D1D2F642FB2 /* AppFrameworkInfo.plist */,
 				5F00C8B4B6548724073C4AAF93AD0795 /* Debug.xcconfig */,
@@ -182,7 +181,7 @@
 				TargetAttributes = {
 					E30F7D64842177B99FDDF63DCA10BCDE = {
 						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = 5J859T6AE8;
+						DevelopmentTeam = 9TT8H7WRHN;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -196,6 +195,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -220,7 +220,6 @@
 				C43A44975A03EE6E1AB6C84DE6994F08 /* Generated.xcconfig in Resources */,
 				229CB39F2D80040AEE1ED23F285ACA94 /* LaunchScreen.storyboard in Resources */,
 				970259CB2284F35CC747F170CC0DF853 /* Main.storyboard in Resources */,
-				0B2E52A1193C475CC824D4E23320D30B /* flutter_assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -247,9 +246,9 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh",
-				"${PODS_ROOT}/.symlinks/flutter/ios-release/Flutter.framework",
-				"${PODS_ROOT}/.symlinks/plugins/flutter_webrtc/ios/WebRTC.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh",
+				"${PODS_ROOT}/.symlinks/flutter/ios/Flutter.framework",
+				"${PODS_ROOT}/RainwayWebRTC/WebRTC.framework-1.0.1/Frameworks/frameworks/WebRTC.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
@@ -258,7 +257,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		7E9D2C9174A80CAA4BFDFDCB4F72C7A8 /* Run Script */ = {
@@ -384,7 +383,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 5J859T6AE8;
+				DEVELOPMENT_TEAM = 9TT8H7WRHN;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -397,7 +396,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cloudwebrtc.flutter-example";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cloudwebrtc.flutter-example.rainway";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -464,7 +463,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 5J859T6AE8;
+				DEVELOPMENT_TEAM = 9TT8H7WRHN;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -477,7 +476,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cloudwebrtc.flutter-example";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cloudwebrtc.flutter-example.rainway";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
