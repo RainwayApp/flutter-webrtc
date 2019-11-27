@@ -1,0 +1,4 @@
+.dart_tool/
+.flutter-plugins-dependencies
+ios/Flutter/Flutter.podspec
+ios/Flutter/flutter_export_environment.sh
