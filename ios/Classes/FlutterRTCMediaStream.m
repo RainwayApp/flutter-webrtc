@@ -1,3 +1,4 @@
+#if !TARGET_OS_TV
 #import <objc/runtime.h>
 
 #import <WebRTC/WebRTC.h>
@@ -552,3 +553,4 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 }
 
 @end
+#endif

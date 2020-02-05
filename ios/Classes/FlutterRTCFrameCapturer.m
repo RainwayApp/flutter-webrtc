@@ -1,3 +1,5 @@
+#if !TARGET_OS_TV
+
 #import <Flutter/Flutter.h>
 
 #import "FlutterRTCFrameCapturer.h"
@@ -80,3 +82,4 @@
 }
 
 @end
+#endif

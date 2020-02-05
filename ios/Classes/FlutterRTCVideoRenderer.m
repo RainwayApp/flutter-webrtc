@@ -1,3 +1,4 @@
+#if !TARGET_OS_TV
 #import "FlutterRTCVideoRenderer.h"
 
 #import <AVFoundation/AVFoundation.h>
@@ -280,3 +281,4 @@
 
 @end
 
+#endif

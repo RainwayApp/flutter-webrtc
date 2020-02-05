@@ -6,7 +6,9 @@
 #import <WebRTC/RTCDataChannel.h>
 #import <WebRTC/RTCDataChannelConfiguration.h>
 #import <WebRTC/RTCMediaStreamTrack.h>
+#if !TARGET_OS_TV
 #import <WebRTC/RTCCameraVideoCapturer.h>
+#endif
 
 @class FlutterRTCVideoRenderer;
 
@@ -16,10 +18,14 @@
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCPeerConnection *> *peerConnections;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
+#if !TARGET_OS_TV
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, FlutterRTCVideoRenderer *> *renders;
+#endif
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
+#if !TARGET_OS_TV
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
+#endif
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;
 @property (nonatomic) int _targetHeight;

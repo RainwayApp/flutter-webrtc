@@ -1,3 +1,4 @@
+#if !TARGET_OS_TV
 #import <Foundation/Foundation.h>
 #import "FlutterWebRTCPlugin.h"
 
@@ -18,3 +19,4 @@
                              toPath:(NSString *) path
                              result:(FlutterResult) result;
 @end
+#endif

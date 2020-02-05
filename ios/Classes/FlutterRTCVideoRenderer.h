@@ -1,3 +1,4 @@
+#if !TARGET_OS_TV
 #import "FlutterWebRTCPlugin.h"
 
 #import <WebRTC/RTCVideoRenderer.h>
@@ -31,3 +32,4 @@
 -(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view;
 
 @end
+#endif

@@ -1,3 +1,5 @@
+#if !TARGET_OS_TV
+
 #import <Flutter/Flutter.h>
 #import <WebRTC/WebRTC.h>
 
@@ -6,3 +8,4 @@
 - (instancetype)initWithTrack:(RTCVideoTrack *) track toPath:(NSString *) path result:(FlutterResult)result;
 
 @end
+#endif

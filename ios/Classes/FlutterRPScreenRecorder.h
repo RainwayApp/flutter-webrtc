@@ -1,3 +1,4 @@
+#if !TARGET_OS_TV
 #import <WebRTC/WebRTC.h>
 
 @interface FlutterRPScreenRecorder : RTCVideoCapturer
@@ -7,3 +8,4 @@
 -(void)stopCapture;
 
 @end
+#endif

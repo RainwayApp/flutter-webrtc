@@ -48,18 +48,25 @@
         self.viewController = viewController;
     }
     
+#if !TARGET_OS_TV
     RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
     RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
-    
+#endif
+
+#if TARGET_OS_TV
+    _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] init];
+#else
     _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
                               initWithEncoderFactory:encoderFactory
                               decoderFactory:decoderFactory];
-    
+#endif   
     
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
+#if !TARGET_OS_TV
     self.renders = [[NSMutableDictionary alloc] init];
+#endif
     return self;
 }
 
@@ -90,6 +97,7 @@
         
         self.peerConnections[peerConnectionId] = peerConnection;
         result(@{ @"peerConnectionId" : peerConnectionId});
+#if !TARGET_OS_TV
     } else if ([@"getUserMedia" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
@@ -104,6 +112,7 @@
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
         [self mediaStreamGetTracks:streamId result:result];
+#endif
     } else if ([@"createOffer" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
@@ -132,6 +141,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
+#if !TARGET_OS_TV
     }  else if ([@"addStream" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         
@@ -182,6 +192,7 @@
                 result([FlutterError errorWithCode:[@"Track is class of " stringByAppendingString:[[track class] description]] message:nil details:nil]);
             }
         }
+#endif
     }  else if ([@"setLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -271,6 +282,7 @@
         [self dataChannelClose:peerConnectionId
                  dataChannelId:dataChannelId];
         result(nil);
+#if !TARGET_OS_TV
     }else if([@"streamDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
@@ -305,6 +317,7 @@
         NSString* trackId = argsMap[@"trackId"];
         [self.localTracks removeObjectForKey:trackId];
         result(nil);
+#endif
     }else if([@"peerConnectionClose" isEqualToString:call.method] || [@"peerConnectionDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -330,6 +343,7 @@
         }
         [dataChannels removeAllObjects];
         result(nil);
+#if !TARGET_OS_TV
     }else if([@"createVideoRenderer" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
@@ -397,6 +411,7 @@
                             error:nil];
         [audioSession setActive:YES error:nil];
         result(nil);
+#endif
     }else if ([@"getLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -458,6 +473,7 @@
 }
 
 
+#if !TARGET_OS_TV
 -(void)mediaStreamGetTracks:(NSString*)streamId
                      result:(FlutterResult)result {
     RTCMediaStream* stream = [self streamForId:streamId];
@@ -525,6 +541,7 @@
 
     return track;    
 }
+#endif
 
 - (RTCIceServer *)RTCIceServer:(id)json
 {
@@ -636,6 +653,7 @@
     }
   }
 
+#if !TARGET_OS_TV
   if (json[@"sdpSemantics"] != nil && [json[@"sdpSemantics"] isKindOfClass:[NSString class]]) {
     NSString *sdpSemantics = json[@"sdpSemantics"];
     if ([sdpSemantics isEqualToString:@"plan-b"]) {
@@ -644,6 +662,7 @@
       config.sdpSemantics = RTCSdpSemanticsUnifiedPlan;
     }
   }
+#endif
 
   return config;
 }

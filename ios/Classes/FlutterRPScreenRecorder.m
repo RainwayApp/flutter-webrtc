@@ -1,3 +1,5 @@
+#if !TARGET_OS_TV
+
 #import "FlutterRPScreenRecorder.h"
 #import <ReplayKit/ReplayKit.h>
 
@@ -70,3 +72,4 @@
 }
 
 @end
+#endif

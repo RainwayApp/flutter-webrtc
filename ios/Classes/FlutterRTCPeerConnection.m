@@ -59,6 +59,7 @@
     objc_setAssociatedObject(self, @selector(dataChannels), dataChannels, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+#if !TARGET_OS_TV
 - (NSMutableDictionary<NSString *, RTCMediaStream *> *)remoteStreams
 {
     return objc_getAssociatedObject(self, _cmd);
@@ -78,6 +79,7 @@
 {
     objc_setAssociatedObject(self, @selector(remoteTracks), remoteTracks, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
+#endif
 
 #pragma mark - FlutterStreamHandler methods
 
