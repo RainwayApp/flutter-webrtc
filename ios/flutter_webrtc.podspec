@@ -16,7 +16,7 @@ A new flutter plugin project.
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   # s.dependency 'libyuv-iOS'
-  s.dependency 'RainwayWebRTC', '1.0.4'
+  s.dependency 'RainwayWebRTC', '1.1.0'
   s.ios.deployment_target = '9.0'
   s.tvos.deployment_target = '9.0'
   s.static_framework = true
