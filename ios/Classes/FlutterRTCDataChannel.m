@@ -77,9 +77,9 @@
         dataChannel.delegate = self;
         
         FlutterEventChannel *eventChannel = [FlutterEventChannel
-                                             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%d", dataChannel.channelId]
+                                             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%d", config.channelId]
                                              binaryMessenger:messenger];
-        
+        NSLog(@"Created %@", [NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%d", config.channelId]);
         dataChannel.eventChannel = eventChannel;
         [eventChannel setStreamHandler:dataChannel];
     }
@@ -130,13 +130,19 @@
 // Called when the data channel state has changed.
 - (void)dataChannelDidChangeState:(RTCDataChannel*)channel
 {
-    RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
-    FlutterEventSink eventSink = channel.eventSink;
-    if(eventSink) {
-        eventSink(@{ @"event" : @"dataChannelStateChanged",
-                     @"id": channel.flutterChannelId,
-                     @"state": [self stringForDataChannelState:channel.readyState]});
-    }
+    // RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
+    __weak FlutterWebRTCPlugin *weakSelf = self;
+    __weak RTCDataChannel *weakChannel = channel;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        FlutterWebRTCPlugin *strongSelf = weakSelf;
+        RTCDataChannel *strongChannel = weakChannel;
+        
+        if(strongChannel.eventSink) {
+            strongChannel.eventSink(@{ @"event" : @"dataChannelStateChanged",
+                        @"id": strongChannel.flutterChannelId,
+                        @"state": [strongSelf stringForDataChannelState:strongChannel.readyState]});
+        }
+    });
 }
 
 // Called when a data buffer was successfully received.
@@ -152,14 +158,19 @@
         data = [[NSString alloc] initWithData:buffer.data
                                      encoding:NSUTF8StringEncoding];
     }
-    RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
-    FlutterEventSink eventSink = channel.eventSink;
-    if(eventSink) {
-        eventSink(@{ @"event" : @"dataChannelReceiveMessage",
-                     @"id": channel.flutterChannelId,
-                     @"type": type,
-                     @"data": (data ? data : [NSNull null])});
-    }
+    // RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
+
+    __weak RTCDataChannel *weakChannel = channel;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCDataChannel *strongChannel = weakChannel;
+        
+        if(strongChannel.eventSink) {
+            strongChannel.eventSink(@{ @"event" : @"dataChannelReceiveMessage",
+                        @"id": strongChannel.flutterChannelId,
+                        @"type": type,
+                        @"data": (data ? data : [NSNull null])});
+        }
+    });
 }
 
 @end

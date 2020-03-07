@@ -331,12 +331,15 @@
 #pragma mark - RTCPeerConnectionDelegate methods
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeSignalingState:(RTCSignalingState)newState {
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"signalingState",
-                    @"state" : [self stringForSignalingState:newState]});
-    }
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{
+                        @"event" : @"signalingState",
+                        @"state" : [self stringForSignalingState:newState]});
+        }
+    });
 }
 
 -(void)peerConnection:(RTCPeerConnection *)peerConnection
@@ -346,42 +349,49 @@
     NSString *streamId = stream.streamId;
     peerConnection.remoteStreams[streamId] = stream;
     
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"onAddTrack",
-                    @"streamId": streamId,
-                    @"trackId": track.trackId,
-                    @"track": @{
-                            @"id": track.trackId,
-                            @"kind": track.kind,
-                            @"label": track.trackId,
-                            @"enabled": @(track.isEnabled),
-                            @"remote": @(YES),
-                            @"readyState": @"live"}
-                    });
-    }
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{
+                        @"event" : @"onAddTrack",
+                        @"streamId": streamId,
+                        @"trackId": track.trackId,
+                        @"track": @{
+                                @"id": track.trackId,
+                                @"kind": track.kind,
+                                @"label": track.trackId,
+                                @"enabled": @(track.isEnabled),
+                                @"remote": @(YES),
+                                @"readyState": @"live"}
+                        });
+        }
+    });
 }
 
 -(void)peerConnection:(RTCPeerConnection *)peerConnection
           mediaStream:(RTCMediaStream *)stream didRemoveTrack:(RTCVideoTrack*)track{
     [peerConnection.remoteTracks removeObjectForKey:track.trackId];
     NSString *streamId = stream.streamId;
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"onRemoveTrack",
-                    @"streamId": streamId,
-                    @"trackId": track.trackId,
-                    @"track": @{
-                            @"id": track.trackId,
-                            @"kind": track.kind,
-                            @"label": track.trackId,
-                            @"enabled": @(track.isEnabled),
-                            @"remote": @(YES),
-                            @"readyState": @"live"}
-                    });
-    }
+    
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{
+                        @"event" : @"onRemoveTrack",
+                        @"streamId": streamId,
+                        @"trackId": track.trackId,
+                        @"track": @{
+                                @"id": track.trackId,
+                                @"kind": track.kind,
+                                @"label": track.trackId,
+                                @"enabled": @(track.isEnabled),
+                                @"remote": @(YES),
+                                @"readyState": @"live"}
+                        });
+        }
+    });
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didAddStream:(RTCMediaStream *)stream {
@@ -401,15 +411,18 @@
     NSString *streamId = stream.streamId;
     peerConnection.remoteStreams[streamId] = stream;
     
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{
                     @"event" : @"onAddStream",
                     @"streamId": streamId,
                     @"audioTracks": audioTracks,
                     @"videoTracks": videoTracks,
                     });
-    }
+        }
+    });
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didRemoveStream:(RTCMediaStream *)stream {
@@ -438,40 +451,43 @@
 }
 
 - (void)peerConnectionShouldNegotiate:(RTCPeerConnection *)peerConnection {
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{@"event" : @"onRenegotiationNeeded",});
-    }
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{@"event" : @"onRenegotiationNeeded",});
+        }
+    });
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceConnectionState:(RTCIceConnectionState)newState {
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"iceConnectionState",
-                    @"state" : [self stringForICEConnectionState:newState]
-                    });
-    }
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{@"event" : @"iceConnectionState", @"state" : [self stringForICEConnectionState:newState]});
+        }
+    });
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceGatheringState:(RTCIceGatheringState)newState {
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"iceGatheringState",
-                    @"state" : [self stringForICEGatheringState:newState]
-                    });
-    }
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{ @"event" : @"iceGatheringState", @"state" : [self stringForICEGatheringState:newState] });
+        }
+    });
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didGenerateIceCandidate:(RTCIceCandidate *)candidate {
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"onCandidate",
-                    @"candidate" : @{@"candidate": candidate.sdp, @"sdpMLineIndex": @(candidate.sdpMLineIndex), @"sdpMid": candidate.sdpMid}
-                    });
-    }
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{ @"event" : @"onCandidate", @"candidate" : @{@"candidate": candidate.sdp, @"sdpMLineIndex": @(candidate.sdpMLineIndex), @"sdpMid": candidate.sdpMid} });
+        }
+    });
 }
 
 - (void)peerConnection:(RTCPeerConnection*)peerConnection didOpenDataChannel:(RTCDataChannel*)dataChannel {
@@ -492,14 +508,13 @@
     dataChannel.flutterChannelId = dataChannelId;
     [eventChannel setStreamHandler:dataChannel];
     
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"didOpenDataChannel",
-                    @"id": dataChannelId,
-                    @"label": dataChannel.label
-                    });
-    }
+    __weak RTCPeerConnection *weakConnection = peerConnection;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RTCPeerConnection *strongConnection = weakConnection;
+        if(strongConnection.eventSink){
+            strongConnection.eventSink(@{ @"event" : @"didOpenDataChannel", @"id": dataChannelId, @"label": dataChannel.label });
+        }
+    });
 }
 
 @end

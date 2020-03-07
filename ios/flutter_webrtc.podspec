@@ -14,10 +14,12 @@ A new flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
-  s.dependency 'Flutter'
-  # s.dependency 'libyuv-iOS'
-  s.dependency 'RainwayWebRTC', '1.1.0'
+  s.ios.dependency 'Flutter'
+  s.tvos.dependency 'Flutter-tvos'
+  s.ios.dependency 'libyuv-iOS'
+  s.dependency 'RainwayWebRTC', '1.1.1'
   s.ios.deployment_target = '9.0'
+  s.tvos.deployment_target = '9.0'
   s.tvos.deployment_target = '9.0'
   s.static_framework = true
 end

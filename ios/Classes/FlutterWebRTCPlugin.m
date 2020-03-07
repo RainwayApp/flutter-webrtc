@@ -82,8 +82,10 @@
                                              constraints:[self parseMediaConstraints:constraints]
                                              delegate:self];
         
+#if !TARGET_OS_TV
         peerConnection.remoteStreams = [NSMutableDictionary new];
         peerConnection.remoteTracks = [NSMutableDictionary new];
+#endif
         peerConnection.dataChannels = [NSMutableDictionary new];
         
         NSString *peerConnectionId = [[NSUUID UUID] UUIDString];
