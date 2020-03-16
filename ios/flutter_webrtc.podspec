@@ -17,7 +17,7 @@ A new flutter plugin project.
   s.ios.dependency 'Flutter'
   s.tvos.dependency 'Flutter-tvos'
   s.ios.dependency 'libyuv-iOS'
-  s.dependency 'RainwayWebRTC', '1.1.1'
+  s.dependency 'RainwayWebRTC', '1.1.2'
   s.ios.deployment_target = '9.0'
   s.tvos.deployment_target = '9.0'
   s.tvos.deployment_target = '9.0'
