@@ -291,6 +291,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     
     if (videoDevice) {
         RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+        if (self.videoCapturer) {
+            [self.videoCapturer stopCapture];
+        }
         self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
         AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
         NSInteger selectedFps = [self selectFpsForFormat:selectedFormat];
@@ -428,6 +431,14 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
 }
 
+-(void)createLocalMediaStream:(FlutterResult)result{
+    NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
+    RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
+
+    self.localStreams[mediaStreamId] = mediaStream;
+    result(@{@"streamId": [mediaStream streamId] });
+}
+
 -(void)getSources:(FlutterResult)result{
   NSMutableArray *sources = [NSMutableArray array];
   NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
@@ -472,6 +483,54 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
   if (track && track.isEnabled != enabled) {
     track.isEnabled = enabled;
   }
+}
+
+-(void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack *)track result:(FlutterResult) result
+{
+    if (!self.videoCapturer) {
+        result(@NO);
+        return;
+    }
+    if (self.videoCapturer.captureSession.inputs.count == 0) {
+        result(@NO);
+        return;
+    }
+
+    AVCaptureDeviceInput *deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
+    AVCaptureDevice *device = deviceInput.device;
+
+    result(@([device isTorchModeSupported:AVCaptureTorchModeOn]));
+}
+
+-(void)mediaStreamTrackSetTorch:(RTCMediaStreamTrack *)track torch:(BOOL)torch result:(FlutterResult)result
+{
+    if (!self.videoCapturer) {
+        NSLog(@"Video capturer is null. Can't set torch");
+        return;
+    }
+    if (self.videoCapturer.captureSession.inputs.count == 0) {
+        NSLog(@"Video capturer is missing an input. Can't set torch");
+        return;
+    }
+
+    AVCaptureDeviceInput *deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
+    AVCaptureDevice *device = deviceInput.device;
+
+    if (![device isTorchModeSupported:AVCaptureTorchModeOn]) {
+        NSLog(@"Current capture device does not support torch. Can't set torch");
+        return;
+    }
+
+    NSError *error;
+    if ([device lockForConfiguration:&error] == NO) {
+        NSLog(@"Failed to aquire configuration lock. %@", error.localizedDescription);
+        return;
+    }
+
+    device.torchMode = torch ? AVCaptureTorchModeOn : AVCaptureTorchModeOff;
+    [device unlockForConfiguration];
+
+    result(nil);
 }
 
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track result:(FlutterResult)result

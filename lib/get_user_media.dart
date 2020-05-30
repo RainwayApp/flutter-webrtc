@@ -13,7 +13,7 @@ class navigator {
         <String, dynamic>{'constraints': mediaConstraints},
       );
       String streamId = response["streamId"];
-      MediaStream stream = new MediaStream(streamId);
+      MediaStream stream = new MediaStream(streamId, "local");
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {
@@ -25,7 +25,7 @@ class navigator {
  * use MediaProjection for Android and use ReplayKit for iOS
  * TODO: implement for native layer.
  * */
-static Future<MediaStream> getDisplayMedia(
+  static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     MethodChannel channel = WebRTC.methodChannel();
     try {
@@ -34,7 +34,7 @@ static Future<MediaStream> getDisplayMedia(
         <String, dynamic>{'constraints': mediaConstraints},
       );
       String streamId = response["streamId"];
-      MediaStream stream = new MediaStream(streamId);
+      MediaStream stream = new MediaStream(streamId, "local");
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {
