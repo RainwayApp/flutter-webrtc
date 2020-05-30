@@ -7,33 +7,7 @@ import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
 import 'utils.dart';
-
-
-enum RTCSignalingState {
-  RTCSignalingStateStable,
-  RTCSignalingStateHaveLocalOffer,
-  RTCSignalingStateHaveRemoteOffer,
-  RTCSignalingStateHaveLocalPrAnswer,
-  RTCSignalingStateHaveRemotePrAnswer,
-  RTCSignalingStateClosed
-}
-
-enum RTCIceGatheringState {
-  RTCIceGatheringStateNew,
-  RTCIceGatheringStateGathering,
-  RTCIceGatheringStateComplete
-}
-
-enum RTCIceConnectionState {
-  RTCIceConnectionStateNew,
-  RTCIceConnectionStateChecking,
-  RTCIceConnectionStateCompleted,
-  RTCIceConnectionStateConnected,
-  RTCIceConnectionStateCount,
-  RTCIceConnectionStateFailed,
-  RTCIceConnectionStateDisconnected,
-  RTCIceConnectionStateClosed,
-}
+import 'enums.dart';
 
 /*
  * Delegate for PeerConnection.
@@ -60,6 +34,9 @@ class RTCPeerConnection {
   List<MediaStream> _remoteStreams = new List();
   RTCDataChannel _dataChannel;
   Map<String, dynamic> _configuration;
+  RTCSignalingState _signalingState;
+  RTCIceGatheringState _iceGatheringState;
+  RTCIceConnectionState _iceConnectionState;
 
   // public: delegate
   SignalingStateCallback onSignalingState;
@@ -87,6 +64,12 @@ class RTCPeerConnection {
         .listen(eventListener, onError: errorListener);
   }
 
+  RTCSignalingState get signalingState => _signalingState;
+
+  RTCIceGatheringState get iceGatheringState => _iceGatheringState;
+
+  RTCIceConnectionState get iceConnectionState => _iceConnectionState;
+
   /*
    * PeerConnection event listener.
    */
@@ -95,19 +78,19 @@ class RTCPeerConnection {
 
     switch (map['event']) {
       case 'signalingState':
-        String state = map['state'];
+        _signalingState = signalingStateForString(map['state']);
         if (this.onSignalingState != null)
-          this.onSignalingState(signalingStateForString(state));
+          this.onSignalingState(_signalingState);
         break;
       case 'iceGatheringState':
-        String state = map['state'];
+        _iceGatheringState = iceGatheringStateforString(map['state']);
         if (this.onIceGatheringState != null)
-          this.onIceGatheringState(iceGatheringStateforString(state));
+          this.onIceGatheringState(_iceGatheringState);
         break;
       case 'iceConnectionState':
-        String state = map['state'];
+        _iceConnectionState = iceConnectionStateForString(map['state']);
         if (this.onIceConnectionState != null)
-          this.onIceConnectionState(iceConnectionStateForString(state));
+          this.onIceConnectionState(_iceConnectionState);
         break;
       case 'onCandidate':
         Map<dynamic, dynamic> cand = map['candidate'];
@@ -117,8 +100,10 @@ class RTCPeerConnection {
         break;
       case 'onAddStream':
         String streamId = map['streamId'];
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
-          var newStream = new MediaStream(streamId);
+
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+          var newStream = new MediaStream(streamId, _peerConnectionId);
           newStream.setMediaTracks(map['audioTracks'], map['videoTracks']);
           _remoteStreams.add(newStream);
           return newStream;
@@ -128,7 +113,8 @@ class RTCPeerConnection {
         break;
       case 'onRemoveStream':
         String streamId = map['streamId'];
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
           return null;
         });
         if (this.onRemoveStream != null) this.onRemoveStream(stream);
@@ -142,25 +128,29 @@ class RTCPeerConnection {
             map['trackId'], track['label'], track['kind'], track['enabled']);
         String kind = track["kind"];
 
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId,orElse: () {
-          var newStream = new MediaStream(streamId);
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+          var newStream = new MediaStream(streamId, _peerConnectionId);
           _remoteStreams.add(newStream);
           return newStream;
         });
 
-        List<MediaStreamTrack>  oldTracks = (kind == 'audio')? stream.getAudioTracks() : stream.getVideoTracks();
-        MediaStreamTrack oldTrack = oldTracks.length > 0? oldTracks[0] : null;
-        if(oldTrack != null){
-          stream.removeTrack(oldTrack, removeFromNaitve: false);
+        List<MediaStreamTrack> oldTracks = (kind == 'audio')
+            ? stream.getAudioTracks()
+            : stream.getVideoTracks();
+        MediaStreamTrack oldTrack = oldTracks.length > 0 ? oldTracks[0] : null;
+        if (oldTrack != null) {
+          stream.removeTrack(oldTrack, removeFromNative: false);
           if (this.onRemoveTrack != null) this.onRemoveTrack(stream, oldTrack);
         }
 
-        stream.addTrack(newTrack, addToNaitve: false);
+        stream.addTrack(newTrack, addToNative: false);
         if (this.onAddTrack != null) this.onAddTrack(stream, newTrack);
         break;
       case 'onRemoveTrack':
         String streamId = map['streamId'];
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
           return null;
         });
         Map<dynamic, dynamic> track = map['track'];
@@ -214,7 +204,7 @@ class RTCPeerConnection {
   }
 
   Future<RTCSessionDescription> createOffer(
-      Map<String, dynamic> constraints) async {
+      [Map<String, dynamic> constraints = const {}]) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('createOffer', <String, dynamic>{
@@ -256,8 +246,8 @@ class RTCPeerConnection {
     });
   }
 
-  Future<void> removeStream(MediaStream stream) async  {
-    _localStreams.removeWhere((it) => it.id  == stream.id);
+  Future<void> removeStream(MediaStream stream) async {
+    _localStreams.removeWhere((it) => it.id == stream.id);
     await _channel.invokeMethod('removeStream', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'streamId': stream.id,
@@ -289,7 +279,7 @@ class RTCPeerConnection {
   Future<RTCSessionDescription> getLocalDescription() async {
     try {
       final Map<dynamic, dynamic> response =
-      await _channel.invokeMethod('getLocalDescription', <String, dynamic>{
+          await _channel.invokeMethod('getLocalDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
       });
       String sdp = response['sdp'];
@@ -303,7 +293,7 @@ class RTCPeerConnection {
   Future<RTCSessionDescription> getRemoteDescription() async {
     try {
       final Map<dynamic, dynamic> response =
-      await _channel.invokeMethod('getRemoteDescription', <String, dynamic>{
+          await _channel.invokeMethod('getRemoteDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
       });
       String sdp = response['sdp'];
@@ -321,7 +311,7 @@ class RTCPeerConnection {
     });
   }
 
- Future<List<StatsReport>> getStats([MediaStreamTrack track = null]) async {
+  Future<List<StatsReport>> getStats([MediaStreamTrack track = null]) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('getStats', <String, dynamic>{
@@ -329,11 +319,12 @@ class RTCPeerConnection {
         'track': track != null ? track.id : null
       });
       List<StatsReport> stats = new List<StatsReport>();
-      if(response != null){
+      if (response != null) {
         List<dynamic> reports = response['stats'];
-        reports.forEach((report){
-         stats.add(new StatsReport(report['id'], report['type'], report['timestamp'], report['values']));
-       });
+        reports.forEach((report) {
+          stats.add(new StatsReport(report['id'], report['type'],
+              report['timestamp'], report['values']));
+        });
       }
       return stats;
     } on PlatformException catch (e) {

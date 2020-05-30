@@ -176,7 +176,7 @@
     [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
 
     __weak FlutterRTCVideoRenderer *weakSelf = self;
-    if(_renderSize.width != frame.width || _frameSize.height != frame.height){
+    if(_renderSize.width != frame.width || _renderSize.height != frame.height){
         dispatch_async(dispatch_get_main_queue(), ^{
             FlutterRTCVideoRenderer *strongSelf = weakSelf;
             if(strongSelf.eventSink){
@@ -261,10 +261,10 @@
     return [[FlutterRTCVideoRenderer alloc] initWithTextureRegistry:registry messenger:messenger];
 }
 
--(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view {
+-(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view peerConnectionId:(NSString *)peerConnectionId{
     
     RTCVideoTrack *videoTrack;
-    RTCMediaStream *stream = [self streamForId:streamId];
+    RTCMediaStream *stream = [self streamForId:streamId peerConnectionId:peerConnectionId];
     if(stream){
         NSArray *videoTracks = stream ? stream.videoTracks : nil;
         videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
