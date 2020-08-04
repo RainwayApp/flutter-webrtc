@@ -332,9 +332,10 @@
         [self.peerConnections removeObjectForKey:peerConnectionId];
         
         // Clean up peerConnection's streams and tracks
+#if !TARGET_OS_TV
         [peerConnection.remoteStreams removeAllObjects];
         [peerConnection.remoteTracks removeAllObjects];
-        
+#endif
         // Clean up peerConnection's dataChannels.
         NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels
         = peerConnection.dataChannels;
